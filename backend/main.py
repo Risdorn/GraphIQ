@@ -2,6 +2,7 @@ from services import vectordb, graphdb
 from agents import extract_entities_relationship
 
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 from io import BytesIO
 import docx
@@ -18,7 +19,18 @@ import pdfplumber
 # extract_entities_relationship(chunk_metadata)
 
 app = FastAPI(title="GraphIQ Backend")
-run_app = False
+run_app = True # Make this false if you don't want to run backend
+
+# Allow all origins (development)
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins, # List of allowed origins
+    allow_credentials=True,
+    allow_methods=["*"], # GET, POST, PUT, etc.
+    allow_headers=["*"], # Content-Type, Authorization, etc.
+)
 
 # Document Parser, convert to string then use ingestion agents
 def parse_docs(files: List[UploadFile]) -> List[str]:
