@@ -1,10 +1,10 @@
-from services import vectordb, graphdb
+from services import vectordb, graphdb, entity_relation_agent
 
 from prompts import entity_extraction_prompt, relation_extraction_prompt
 
 from schema import EntitiesOutput, RelationsOutput
 
-def extract_entities_relationship(chunk_metadata, entity_relation_agent):
+def extract_entities_relationship(chunk_metadata):
     """
     Perform Entity and Relationship extraction
     

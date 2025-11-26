@@ -259,6 +259,28 @@ class Neo4jGraphDB:
         """
         records = self._run(query, {"name": name}, single=False)
         return [[r["rel"], r["out_node"]] for r in records]
+    
+    def get_graph(self):
+        nodes_query = """
+        MATCH (n)
+        RETURN DISTINCT n.name AS name;
+        """
+        relations_query = """
+        MATCH (a)-[r]->(b)
+        RETURN 
+            a.name AS source,
+            type(r) AS relation,
+            b.name AS target;
+        """
+        records = self._run(nodes_query, single=False)
+        nodes = [r["name"] for r in records]
+        records = self._run(relations_query, single=False)
+        relations = [{
+            "source": r["source"], 
+            "relation": r["relation"], 
+            "target": r["target"]
+            } for r in records]
+        return nodes, relations
 
     def __del__(self):
         self.driver.close()
