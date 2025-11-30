@@ -83,6 +83,37 @@ class VectorStore:
         self._save()
 
         return chunk_metadata["chunk_id"]
+    
+    def batch_add(self, texts: List[str], summaries: List[str]) -> List[int]:
+        # 1. embed text
+        result = self.embedding_model.models.embed_content(
+            model="gemini-embedding-001",
+            contents=texts)
+        embeddings = []
+        for embedding in result.embeddings:
+            embeddings.append(embedding.values)
+        embeddings = np.array(embeddings, dtype=np.float32)
+        embeddings = embeddings / np.sqrt((embeddings**2).sum(axis=1, keepdims=True))
+        embeddings = embeddings.astype("float32")
+
+        # 2. add to faiss
+        self.index.add(embeddings)
+
+        # 3. add metadata
+        chunk_ids = []
+        for text, summary in zip(texts, summaries):
+            chunk_metadata = {
+                "chunk_id": len(self.metadata), # FAISS index position
+                "text": text,
+                "summary": summary,
+                "node": None,
+            }
+            self.metadata.append(chunk_metadata)
+            chunk_ids.append(chunk_metadata["chunk_id"])
+
+        # 4. save
+        self._save()
+        return chunk_ids
 
     def search(self, query: str, top_k: int = 5):
         """
@@ -104,11 +135,12 @@ class VectorStore:
 
         # search in faiss
         distances, indices = self.index.search(query_emb, top_k)
+        distances, indices = distances[0].tolist()[:len(self)], indices[0].tolist()[:len(self)]
 
         # fetch metadata for results
-        results_metadata = [self.metadata[i] for i in indices[0]]
+        results_metadata = [self.metadata[i] for i in indices if i != -1]
 
-        return distances[0].tolist(), indices[0].tolist(), results_metadata
+        return distances, indices, results_metadata
 
     def get(self, idx: int) -> Dict[str, Any]:
         """
@@ -145,9 +177,12 @@ class VectorStore:
 
 
 class Neo4jGraphDB:
-    def __init__(self, uri: str, user: str, password: str, db_name: str):
+    def __init__(self, uri: str, user: str, password: str, db_name: str, reset: bool = False):
         self.driver = GraphDatabase.driver(uri, auth=(user, password))
         self.db_name = db_name
+        
+        if reset:
+            self._delete()
 
     # Runner
     def _run(self, query: str, params: dict = None, single: bool = True):
@@ -157,6 +192,11 @@ class Neo4jGraphDB:
                 return result.single()
             else:
                 return list(result)
+    
+    # Reset Db
+    def _delete(self):
+        query = "MATCH (n) DETACH DELETE n"
+        self._run(query, single=False)
 
     # Operations
     def create_node(self, name: str, node_type: str, chunk_ids: List[int] = None) -> None:

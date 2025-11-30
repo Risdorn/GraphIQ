@@ -128,7 +128,7 @@ export default function ChatPane() {
       const assistantMessage: Message = {
         id: Math.random().toString(36).substr(2, 9),
         type: "assistant",
-        content: data["details"] || "Response received from the server.",
+        content: data["answer"] || "Response received from the server.",
         timestamp: new Date(),
       };
 

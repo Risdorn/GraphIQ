@@ -1,0 +1,74 @@
+[
+  {
+    "id": "chunk_001",
+    "text": "GraphIQ is an agentic AI system that extracts entities and relations from documents and stores them inside a Neo4j knowledge graph.",
+    "meta": {
+      "source": "fake_pdf",
+      "page": 1,
+      "entities": ["GraphIQ", "Neo4j", "agentic AI"]
+    }
+  },
+  {
+    "id": "chunk_002",
+    "text": "The system uses sentence transformer embeddings to encode chunks of text. These embeddings are stored in a FAISS vector index for fast similarity search.",
+    "meta": {
+      "source": "fake_pdf",
+      "page": 1,
+      "entities": ["sentence transformer", "FAISS"]
+    }
+  },
+  {
+    "id": "chunk_003",
+    "text": "Hybrid retrieval combines vector search and graph evidence from Neo4j to rank chunks relevant to the query.",
+    "meta": {
+      "source": "fake_pdf",
+      "page": 2,
+      "entities": ["hybrid retrieval", "Neo4j"]
+    }
+  },
+  {
+    "id": "chunk_004",
+    "text": "The entity extraction agent identifies important nodes such as people, organizations, methods, and topics. These nodes are inserted as nodes in the graph.",
+    "meta": {
+      "source": "fake_pdf",
+      "page": 2,
+      "entities": ["entity extraction", "graph nodes"]
+    }
+  },
+  {
+    "id": "chunk_005",
+    "text": "Relation extraction identifies how two entities are connected. For example, an algorithm may be used by a system or developed by a researcher.",
+    "meta": {
+      "source": "fake_pdf",
+      "page": 3,
+      "entities": ["relation extraction", "algorithm"]
+    }
+  },
+  {
+    "id": "chunk_006",
+    "text": "Neo4j stores nodes and relationships in a labeled property graph structure that helps the system perform graph traversal for retrieval.",
+    "meta": {
+      "source": "fake_pdf",
+      "page": 3,
+      "entities": ["Neo4j", "graph traversal"]
+    }
+  },
+  {
+    "id": "chunk_007",
+    "text": "The embedding agent produces numerical vector representations of text that capture semantic meaning for downstream retrieval.",
+    "meta": {
+      "source": "fake_pdf",
+      "page": 4,
+      "entities": ["embedding agent", "semantic meaning"]
+    }
+  },
+  {
+    "id": "chunk_008",
+    "text": "Using a GPU-accelerated FAISS index allows the retrieval agent to answer queries in milliseconds even on large datasets.",
+    "meta": {
+      "source": "fake_pdf",
+      "page": 4,
+      "entities": ["FAISS", "GPU"]
+    }
+  }
+]

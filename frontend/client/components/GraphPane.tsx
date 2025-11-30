@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import dagre from "dagre"
 
 interface Relation {
   source: string;
@@ -31,6 +32,10 @@ export default function GraphPane({ nodes: propsNodes = [], relations: propsRela
   const [error, setError] = useState<string | null>(null);
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [panning, setPanning] = useState(false);
+  const panStart = useRef({ x: 0, y: 0 });
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   const onMouseDownNode = (node: string, e: React.MouseEvent<SVGCircleElement>) => {
     const pos = nodePositions.get(node);
@@ -44,7 +49,14 @@ export default function GraphPane({ nodes: propsNodes = [], relations: propsRela
   };
 
   const onMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (!draggingNode) return;
+    if (panning) {
+      setOffset({
+        x: e.clientX - panStart.current.x,
+        y: e.clientY - panStart.current.y,
+      });
+      return;
+    }
+    if (!draggingNode) {return};
 
     setNodePositions((prev) => {
       const newMap = new Map(prev);
@@ -58,6 +70,18 @@ export default function GraphPane({ nodes: propsNodes = [], relations: propsRela
 
   const onMouseUp = () => {
     setDraggingNode(null);
+  };
+
+  const onWheel = (e: React.WheelEvent<SVGSVGElement>) => {
+    e.preventDefault();
+
+    const scaleAmount = -e.deltaY * 0.001; // smooth zoom
+    setZoom((prev) => {
+      let z = prev + scaleAmount;
+      if (z < 0.1) z = 0.1;
+      if (z > 4) z = 4;
+      return z;
+    });
   };
 
   // Fetch graph data on component mount
@@ -86,17 +110,40 @@ export default function GraphPane({ nodes: propsNodes = [], relations: propsRela
 
   // Calculate node positions using scattered random layout
   useEffect(() => {
-    if (nodes.length === 0) return;
+    if (nodes.length === 0 || relations.length === 0) return;
+
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({
+      rankdir: "LR",      // left → right layout
+      nodesep: 50,        // spacing between nodes
+      ranksep: 100        // spacing between layers
+    });
+    g.setDefaultEdgeLabel(() => ({}));
+
+    // Add nodes with approximate sizes
+    nodes.forEach((node) => {
+      g.setNode(node, { width: 120, height: 50 });
+    });
+
+    // Add edges
+    relations.forEach((edge) => {
+      g.setEdge(edge.source, edge.target);
+    });
+
+    dagre.layout(g);
+
+    const graphInfo = g.graph();
+    const graphWidth = graphInfo.width || 0;
+    const graphHeight = graphInfo.height || 0;
+
+    const offsetX = canvasSize.width / 2 - graphWidth / 2;
+    const offsetY = canvasSize.height / 2 - graphHeight / 2;
 
     const positions = new Map<string, NodePosition>();
-    const width = canvasSize.width;
-    const height = canvasSize.height;
 
     nodes.forEach((node) => {
-      // Avoid placing too close to edges
-      const x = Math.random() * (width - 200) + 100;
-      const y = Math.random() * (height - 200) + 100;
-      positions.set(node, { x, y });
+      const pos = g.node(node);
+      positions.set(node, { x: pos.x, y: pos.y});
     });
 
     setNodePositions(positions);
@@ -214,9 +261,24 @@ export default function GraphPane({ nodes: propsNodes = [], relations: propsRela
             height={canvasSize.height}
             className="bg-white dark:bg-slate-800 rounded-lg shadow-sm"
             style={{ minWidth: "100%", minHeight: "100%" }}
+            onWheel={onWheel}
+            onMouseDown={(e) => {
+              // IMPORTANT: Only pan when clicking background, not nodes
+              if (e.target === svgRef.current) {
+                setPanning(true);
+                panStart.current = {
+                  x: e.clientX - offset.x,
+                  y: e.clientY - offset.y,
+                };
+              }
+            }}
             onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
+            onMouseUp={() => {
+              setPanning(false);
+              onMouseUp();
+            }}
           >
+            <g transform={`translate(${offset.x}, ${offset.y}) scale(${zoom})`}>
             {/* Render edges/relations */}
             <defs>
               <marker
@@ -296,7 +358,7 @@ export default function GraphPane({ nodes: propsNodes = [], relations: propsRela
               const longest = Math.max(...words.map(w => w.length));
 
               const baseRadius = 30;
-              const extra = Math.max(0, longest - 6) * 2;   // grow 2px for each char beyond 6
+              const extra = Math.max(0, longest - 6) * 2.0;   // grow 2px for each char beyond 6
               const radius = baseRadius + extra;
 
               return (
@@ -346,6 +408,7 @@ export default function GraphPane({ nodes: propsNodes = [], relations: propsRela
                 </g>
               );
             })}
+            </g>
           </svg>
         )}
       </div>

@@ -12,18 +12,21 @@ from typing import Optional
 from pydantic import ValidationError
 
 from db import VectorStore, Neo4jGraphDB
-from prompts import entity_relation_system_prompt
+from prompts import ingestion_system_prompt, entity_extraction_system_prompt, relation_extraction_system_prompt, reasoning_system_prompt
+from prompts import baseline_system_prompt
 
-vectordb = VectorStore(reset=True)
+reset = False # DO NOT CHANGE THIS (Making it True, will reset both vectorDB and graphDB)
+
+os.makedirs("storage", exist_ok=True)
+vectordb = VectorStore(reset=reset)
+node_vectordb = VectorStore(metadata_path="storage/node.json", index_path="storage/node.faiss", reset=reset)
 graphdb = Neo4jGraphDB(
     uri=os.getenv("NEO4J_URI"),
     user=os.getenv("NEO4J_USERNAME"),
     password=os.getenv("NEO4J_PASSWORD"),
-    db_name=os.getenv("NEO4J_DATABASE")
+    db_name=os.getenv("NEO4J_DATABASE"),
+    reset=reset
 )
-# if not graphdb.driver.verify_connectivity():
-#     print("Graph DB not Connected, check on console")
-#     raise ValueError("GraphDB connection failed")
 
 llm_client = OpenAI(
   base_url="https://openrouter.ai/api/v1",
@@ -34,11 +37,11 @@ def create_llm_agent(system_prompt: Optional[str] = None):
     """
     Creates a LLM agent with a system prompt
     """
-    if system_prompt:
+    if system_prompt and len(system_prompt) > 0:
         system_message = {"role": "system", "content": system_prompt}
     def call_llm(prompt: str, output_model = None, retries: int = 3):
         # Set system prompt
-        if system_prompt:
+        if system_prompt and len(system_prompt) > 0:
             messages = [system_message]
         else: messages = []
         messages.append(
@@ -77,4 +80,8 @@ def create_llm_agent(system_prompt: Optional[str] = None):
 
 
 # Create agents
-entity_relation_agent = create_llm_agent(system_prompt=entity_relation_system_prompt)
+ingestion_agent = create_llm_agent(system_prompt=ingestion_system_prompt)
+entity_agent = create_llm_agent(system_prompt=entity_extraction_system_prompt)
+relation_agent = create_llm_agent(system_prompt=relation_extraction_system_prompt)
+reasoning_agent = create_llm_agent(system_prompt=reasoning_system_prompt)
+baseline_agent = create_llm_agent(system_prompt=baseline_system_prompt)

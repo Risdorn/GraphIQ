@@ -1,5 +1,5 @@
 from services import vectordb, graphdb
-from agents import extract_entities_relationship
+from agents import ingest_file, extract_entities_relationship, retrieval, reasoning_insights, baseline
 
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,6 +20,7 @@ import pdfplumber
 
 app = FastAPI(title="GraphIQ Backend")
 run_app = True # Make this false if you don't want to run backend
+BATCH_SIZE = 5
 
 # Allow all origins (development)
 origins = ["*"]
@@ -33,11 +34,13 @@ app.add_middleware(
 )
 
 # Document Parser, convert to string then use ingestion agents
-def parse_docs(files: List[UploadFile]) -> List[str]:
+def parse_docs(files: List[UploadFile]):
     output = []
+    filenames = []
 
     for file in files:
         filename = file.filename.lower()
+        filenames.append(filename)
 
         # --- TXT FILE ---
         if filename.endswith(".txt"):
@@ -69,7 +72,7 @@ def parse_docs(files: List[UploadFile]) -> List[str]:
         # Reset internal pointer for reuse if needed
         file.file.seek(0)
 
-    return output
+    return output, filenames
 
 def retrieve_reason(text):
     return len(text)
@@ -103,20 +106,46 @@ async def chat_endpoint(
             )
     
     # Process documents, Ingestion + Entity Extraction
+    document_process_op = {
+        "document_response": "Not Applicable",
+    }
     if len(files) > 0:
-        output = parse_docs(files)
+        output, filenames = parse_docs(files)
+        # Chunk each file, and extract entities
+        print(f"Running for {len(output)} files")
+        for i, file in enumerate(output):
+            print(f"File {i+1}: {filenames[i]}")
+            print("Extracting Chunks")
+            chunks = ingest_file(file, batch_size=BATCH_SIZE)
+            total_chunks = len(chunks)
+            print(f"Extracting Entities and Relationships for {total_chunks} chunks")
+            for i in range(0, total_chunks, BATCH_SIZE):
+                extract_entities_relationship(chunks[i:i+BATCH_SIZE])
+        
+        document_process_op["document_response"] = "All Documents Processed"
     
     # If text provided, reason and answer
-    if len(text) > 0:
-        result = retrieve_reason(text)
-
-    return {
-        "status": "success",
-        "document_response": "Documents processed" if len(files) > 0 else "Not Applicable",
-        "document_parsed": output if len(files) > 0 else "Not Applicable",
-        "text_received": text,
-        "details": result if len(text) > 0 else "Not Applicable"
+    query_response = {
+        "query": text,
+        "answer": "Not Applicable"
     }
+    if text and len(text) > 0:
+        result = retrieval(text)
+        result = reasoning_insights(**result)
+        query_response["answer"] = result["answer"]
+        if document_process_op["document_response"] != "Not Applicable":
+            query_response["answer"] = "All Documents Processed\n\n" + query_response["answer"]
+        # Baseline response
+        result = baseline(text)["answer"]
+        query_response["baseline"] = result
+    
+    final_response = {
+        "status": "success"
+    }
+    final_response.update(document_process_op)
+    final_response.update(query_response)
+
+    return final_response
 
 @app.get("/graph")
 async def get_graph():

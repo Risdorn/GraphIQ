@@ -1,0 +1,193 @@
+File 1: mlsp.pdf
+Extracting Chunks
+Got 25 Chunks
+Running 0-5 chunks
+Running 5-10 chunks
+Running 10-15 chunks
+Running 15-20 chunks
+Running 20-25 chunks
+Chunk extraction took 142.98s
+Added to vector DB
+Extracting Entities and Relationships for 25 chunks
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 0, 1, 2, 3, 4:
+New Nodes Created: 38,
+Old Nodes Updated: 0,
+New Relations added: 29
+Extraction took 113.45s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 5, 6, 7, 8, 9:
+New Nodes Created: 20,
+Old Nodes Updated: 5,
+New Relations added: 24
+Extraction took 101.38s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 10, 11, 12, 13, 14:
+New Nodes Created: 25,
+Old Nodes Updated: 3,
+New Relations added: 19
+Extraction took 121.96s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 15, 16, 17, 18, 19:
+New Nodes Created: 19,
+Old Nodes Updated: 0,
+New Relations added: 9
+Extraction took 109.88s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 20, 21, 22, 23, 24:
+New Nodes Created: 31,
+Old Nodes Updated: 0,
+New Relations added: 24
+Extraction took 120.16s
+=======================================================
+
+File 1: reinforcement_learning.pdf
+Extracting Chunks
+Got 49 Chunks
+Running 0-5 chunks
+Running 5-10 chunks
+Running 10-15 chunks
+Running 15-20 chunks
+Running 20-25 chunks
+Running 25-30 chunks
+Running 30-35 chunks
+Running 35-40 chunks
+Running 40-45 chunks
+Running 45-50 chunks
+Chunk extraction took 194.45s
+Added to vector DB
+Extracting Entities and Relationships for 48 chunks
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 0, 1, 2, 3, 4:
+New Nodes Created: 35,
+Old Nodes Updated: 0,
+New Relations added: 24
+Extraction took 157.25s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 5, 6, 7, 8, 9:
+New Nodes Created: 16,
+Old Nodes Updated: 4,
+New Relations added: 17
+Extraction took 118.46s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 10, 11, 12, 13, 14:
+New Nodes Created: 17,
+Old Nodes Updated: 3,
+New Relations added: 15
+Extraction took 112.07s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 15, 16, 17, 18, 19:
+New Nodes Created: 13,
+Old Nodes Updated: 7,
+New Relations added: 15
+Extraction took 130.63s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 20, 21, 22, 23, 24:
+New Nodes Created: 13,
+Old Nodes Updated: 6,
+New Relations added: 11
+Extraction took 124.65s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 25, 26, 27, 28, 29:
+New Nodes Created: 9,
+Old Nodes Updated: 6,
+New Relations added: 15
+Extraction took 100.29s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 30, 31, 32, 33, 34:
+New Nodes Created: 19,
+Old Nodes Updated: 7,
+New Relations added: 20
+Extraction took 123.96s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 35, 36, 37, 38, 39:
+New Nodes Created: 12,
+Old Nodes Updated: 7,
+New Relations added: 10
+Extraction took 98.66s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+Validation error (attempt 1): Expecting ':' delimiter: line 1 column 179 (char 178)
+Validation error (attempt 2): Expecting ':' delimiter: line 1 column 170 (char 169)
+
+=======================================================
+For chunks , 40, 41, 42, 43, 44:
+New Nodes Created: 17,
+Old Nodes Updated: 5,
+New Relations added: 18
+Extraction took 224.69s
+=======================================================
+
+Extracting Entities
+Extracting Relations
+
+=======================================================
+For chunks , 45, 46, 47:
+New Nodes Created: 7,
+Old Nodes Updated: 2,
+New Relations added: 6
+Extraction took 125.13s
+=======================================================

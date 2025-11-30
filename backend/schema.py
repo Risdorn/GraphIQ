@@ -1,8 +1,8 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict
 
 class EntitiesOutput(BaseModel):
-    entities: List[str]
+    entities: Dict[str, List[str]]
 
 class Relation(BaseModel):
     source: str
@@ -11,3 +11,6 @@ class Relation(BaseModel):
 
 class RelationsOutput(BaseModel):
     relations: List[Relation]
+
+class SummariesOutput(BaseModel):
+    summaries: List[str]
