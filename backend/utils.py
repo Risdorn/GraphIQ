@@ -76,14 +76,14 @@ def format_vector_context(vector_results, max_chars = 4000):
 
     for i, r in enumerate(vector_results):
         chunk_id = r.get("chunk_id", f"chunk_{i}")
-        score = r.get("combined_score", None)
+        #score = r.get("combined_score", None)
         summary = r.get("summary", None)
         text = r.get("text", "")
 
         header = f"[VECTOR CHUNK {i} | id={chunk_id}"
-        if score is not None:
-            header += f" | score={score:.4f}"
-        header += "]"
+        # if score is not None:
+        #     header += f" | score={score:.4f}"
+        # header += "]"
 
         parts = [header]
         if summary:

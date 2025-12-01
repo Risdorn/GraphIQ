@@ -12,7 +12,7 @@ from typing import Optional
 from pydantic import ValidationError
 
 from db import VectorStore, Neo4jGraphDB
-from prompts import ingestion_system_prompt, entity_extraction_system_prompt, relation_extraction_system_prompt, reasoning_system_prompt
+from prompts import ingestion_system_prompt, entity_extraction_system_prompt, relation_extraction_system_prompt, retrieval_system_prompt, reasoning_system_prompt
 from prompts import baseline_system_prompt
 
 reset = False # DO NOT CHANGE THIS (Making it True, will reset both vectorDB and graphDB)
@@ -83,5 +83,6 @@ def create_llm_agent(system_prompt: Optional[str] = None):
 ingestion_agent = create_llm_agent(system_prompt=ingestion_system_prompt)
 entity_agent = create_llm_agent(system_prompt=entity_extraction_system_prompt)
 relation_agent = create_llm_agent(system_prompt=relation_extraction_system_prompt)
+retrieval_agent = create_llm_agent(system_prompt=retrieval_system_prompt)
 reasoning_agent = create_llm_agent(system_prompt=reasoning_system_prompt)
 baseline_agent = create_llm_agent(system_prompt=baseline_system_prompt)

@@ -107,7 +107,7 @@ async def chat_endpoint(
     
     # Process documents, Ingestion + Entity Extraction
     document_process_op = {
-        "document_response": "Not Applicable",
+        "document_response": False,
     }
     if len(files) > 0:
         output, filenames = parse_docs(files)
@@ -122,22 +122,28 @@ async def chat_endpoint(
             for i in range(0, total_chunks, BATCH_SIZE):
                 extract_entities_relationship(chunks[i:i+BATCH_SIZE])
         
-        document_process_op["document_response"] = "All Documents Processed"
+        document_process_op["document_response"] = True
     
     # If text provided, reason and answer
     query_response = {
         "query": text,
-        "answer": "Not Applicable"
+        "query_response": False,
+        "answer": None,
+        "baseline": None
     }
     if text and len(text) > 0:
         result = retrieval(text)
         result = reasoning_insights(**result)
         query_response["answer"] = result["answer"]
-        if document_process_op["document_response"] != "Not Applicable":
-            query_response["answer"] = "All Documents Processed\n\n" + query_response["answer"]
+        query_response["query_response"] = True
         # Baseline response
         result = baseline(text)["answer"]
         query_response["baseline"] = result
+    
+    if document_process_op["document_response"] and not query_response["query_response"]:
+        query_response["answer"] = "All Documents Processed"
+    elif document_process_op["document_response"] and query_response["query_response"]:
+        query_response["answer"] = "All Documents Processed" + query_response["answer"]
     
     final_response = {
         "status": "success"

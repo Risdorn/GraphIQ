@@ -9,6 +9,9 @@ class Relation(BaseModel):
     relation: str
     target: str
 
+class RetrievalEntitiesOutput(BaseModel):
+    entities: List[str]
+
 class RelationsOutput(BaseModel):
     relations: List[Relation]
 

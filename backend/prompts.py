@@ -34,7 +34,7 @@ Rules:
 - Do NOT provide explanations, commentary, Markdown, or prose.
 - Use canonical short strings for entity names (1-3 words preferred).
 - Deduplicate entities; each entity must appear only once.
-- If no entities exist, return: {"entities": []}.
+- If no entities exist, return: {"entities": {}}.
 """
 
 relation_extraction_system_prompt = """
@@ -62,6 +62,26 @@ from the texts below:
 """
 relation_extraction_prompt = """
 Given the existing entities, entities present within the text and the texts, extract directed relations:
+"""
+
+retrieval_system_prompt = """
+You are a precise information extraction system.
+
+Your job is to extract structured knowledge from list of texts.
+You will extract Entities: concepts, objects, methods, ideas, people, technologies.
+
+Rules:
+- Always output STRICT JSON only.
+- Use this format for entities: {"entities": ["entity_1", "entity_2", ...]}
+- Do NOT provide explanations, commentary, Markdown, or prose.
+- Use canonical short strings for entity names (1-3 words preferred).
+- Deduplicate entities; each entity must appear only once.
+- If no entities exist, return: {"entities": []}.
+"""
+
+retrieval_prompt = """
+Extract key entities (concepts, methods, objects)
+from the query below:
 """
 
 reasoning_system_prompt = """

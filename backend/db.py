@@ -321,6 +321,14 @@ class Neo4jGraphDB:
             "target": r["target"]
             } for r in records]
         return nodes, relations
+    
+    def degree_in_score(self, node):
+        query = """
+        MATCH (n {name: $node_id})-[]-(m)
+        RETURN COUNT(m) AS degree
+        """
+        record = self._run(query, params={"node_id": node})
+        return float(record["degree"]) if record else 0.0
 
     def __del__(self):
         self.driver.close()

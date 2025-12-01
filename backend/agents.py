@@ -2,11 +2,11 @@ import re
 import time
 
 from services import vectordb, graphdb, node_vectordb
-from services import ingestion_agent, entity_agent, relation_agent, reasoning_agent, baseline_agent
+from services import ingestion_agent, entity_agent, relation_agent, retrieval_agent, reasoning_agent, baseline_agent
 
-from prompts import entity_extraction_prompt, relation_extraction_prompt, ingestion_prompt
+from prompts import entity_extraction_prompt, relation_extraction_prompt, ingestion_prompt, retrieval_prompt
 
-from schema import SummariesOutput, EntitiesOutput, RelationsOutput
+from schema import SummariesOutput, EntitiesOutput, RelationsOutput, RetrievalEntitiesOutput
 
 from utils import paragraph_chunking
 from utils import format_vector_context, format_graph_context
@@ -148,45 +148,83 @@ Extraction took {time.time()-start:.2f}s
 =======================================================
           """)
 
-def retrieval(query, top_k = 5):
-    hits = vectordb.search(query=query, top_k=top_k)
-    overall_graph_results = []
-    all_nodes = set()
+def retrieval(query, top_k = 5, top_nodes = 3):
+    vectordb_data = []
+    graphdb_data = []
+    # Get most appropriate entities
+    prompt = retrieval_prompt + "\n\n" + query
+    entities = retrieval_agent(prompt=prompt, output_model=RetrievalEntitiesOutput)
+    entities = entities.entities
+    # Get most relevant node_hits
+    seed_nodes = []
+    seed_node_names = set()
+    for name in entities:
+        node_hits = node_vectordb.search(query=name, top_k=top_k)
+        for distance, metadata in zip(node_hits[0], node_hits[2]):
+            node_name = metadata["text"]
+            if node_name in seed_node_names: continue
+            seed_node_names.add(node_name)
+            # Check if the node is directly present in user query
+            match_score = 1.0 if node_name in entities else 0.0
+            # Check how well connected the node is
+            graph_centrality_score = graphdb.degree_in_score(node_name)
+            seed_nodes.append(
+                {
+                    "node": metadata["text"],
+                    "score": 0.55 * (1-distance) + 0.35 * match_score + 0.1 * graph_centrality_score
+                }
+            )
+    
+    # Sort and pick top 3
+    selected = sorted(seed_nodes, key=lambda x: x["score"], reverse=True)
+    core_nodes = selected[:top_nodes]
+    
+    # Neighbor nodes
+    text_chunks = []
+    summary_chunks = []
     neighbor_nodes = set()
-    primary_chunks = set()
-    for distance, indice, metadata in zip(hits[0], hits[1], hits[2]):
-        nodes = metadata["node"]
-        primary_chunks.add(metadata["chunk_id"])
-        ge = []
+    neighbor_node_names = set()
+    for node_dict in core_nodes:
+        # Add text chunk ids 
+        text_chunks.extend(graphdb.get_chunks_for_node(node_dict["node"]))
+        # One hop away
+        nodes = graphdb.get_one_hop(node_dict["node"])
         for node in nodes:
-            if node in all_nodes: continue
-            all_nodes.add(node)
-            ge.append(node)
-            # One hop away
-            # neighbors = graphdb.get_one_hop(node)
-            # for neighbor in neighbors:
-            #     neighbor_nodes.add(neighbor[1])
-            #     neighbor = [node] + neighbor
-            #     ge.append(neighbor)
-                
-        boost = 0.05 * len(ge)
-        metadata["combined_score"] = distance + boost
-        overall_graph_results.extend(ge)
+            text = node_dict["node"] + "->" + node[0] + "->" + node[1]
+            if text in neighbor_nodes: continue # Check if START->REL->END is the exact same
+            if node[1] not in neighbor_node_names: # Check if we have already added chunk_ids
+                neighbor_node_names.add(node[1])
+                summary_chunks.extend(graphdb.get_chunks_for_node(node[1]))
+            neighbor_node_names.add(node[1])
+            neighbor_nodes.add(text)
     
-    # For each neighbor, get the summary
-    # neighbor_nodes = list(neighbor_nodes)
-    # for neighbor in neighbor_nodes:
-    #     chunk_ids = graphdb.get_node(neighbor)["chunk_ids"]
-    #     for chunk_id in chunk_ids:
-    #         if chunk_id in primary_chunks: continue
-    #         metadata = vectordb.get(chunk_id)
-    #         metadata["text"] = ""
-    #         metadata["combined_score"] = 0
-    #         hits[2].append(metadata)
-    
-    hits = hits[2] # Only need metadata
-    hits_sorted = sorted(hits, key=lambda x: x.get("combined_score", 1), reverse=True)
-    return {"query": query, "vector_context": hits_sorted, "graph_context": ge}
+    # Get data from vectordb
+    text_chunks = list(set(text_chunks))
+    summary_chunks = list(set(summary_chunks))
+    # Direct match from vectordb
+    vector_hits = vectordb.search(query=query, top_k=top_k)
+    for metadata in vector_hits[2]:
+        vectordb_data.append({
+            "chunk_id": metadata["chunk_id"],
+            "text": metadata["text"],
+        })
+    # All text
+    for chunk_id in text_chunks:
+        metadata = vectordb.get(chunk_id)
+        vectordb_data.append({
+            "chunk_id": metadata["chunk_id"],
+            "text": metadata["text"]
+        })
+    # Only summary
+    for chunk_id in summary_chunks:
+        metadata = vectordb.get(chunk_id)
+        vectordb_data.append({
+            "chunk_id": metadata["chunk_id"],
+            "summary": metadata["summary"]
+        })
+    # Graphdb data, just the START->REL->END data
+    graphdb_data = list(neighbor_nodes)
+    return {"query": query, "vector_context": vectordb_data, "graph_context": graphdb_data}
 
 def reasoning_insights(query, vector_context, graph_context):
     vector_ctx = format_vector_context(vector_context)
