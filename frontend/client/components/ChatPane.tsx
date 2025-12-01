@@ -1,6 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "./ui/button";
 import { Send, X, Paperclip, AlertCircle } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import rehypeHighlight from "rehype-highlight";
 
 interface Message {
   id: string;
@@ -195,7 +199,14 @@ export default function ChatPane() {
                     : "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-none"
                 }`}
               >
-                <p className="text-sm">{message.content}</p>
+                <p className="text-sm">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw, rehypeHighlight]}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                </p>
                 <p
                   className={`text-xs mt-1 ${
                     message.type === "user" ? "text-blue-100" : "text-slate-500 dark:text-slate-400"
