@@ -6,6 +6,15 @@ GraphIQ is an agentic AI system designed to extract knowledge from documents, re
 
 At a high level, the project ingests PDFs or text documents, breaks them into meaningful chunks, summarizes them, extracts entities and relationships, stores everything in Neo4j, and exposes APIs for exploration and chat-based interaction.
 
+## Team
+
+| Name | S.R. | GitHub |
+| --- | --- | --- |
+| Rishabh Indoria | 24002 | [@Risdorn](https://github.com/Risdorn) |
+| Kirtan Vora Jatin | 24573 | [@kirtanv142001](https://github.com/kirtanv142001) |
+| Amrit Lal | 24608 | [@amritseju21](https://github.com/amritseju21) |
+| Jitendra Verma | 24098 | [@jitendrav-iisc9](https://github.com/jitendrav-iisc9) |
+
 ## API KEYS
 
 Make a `.env` in root and put the following values in it.
@@ -88,3 +97,8 @@ GraphIQ/
 │                                 given that node_modules are installed and venv is active
 ├── .env                        # Needs to be created. Will be used for all keys
 ```
+
+## Future Work
+
+- **Latency**: The ingestion and entity extraction pipeline currently takes up to 5 minutes for a 25-page dense document, largely due to LLM API call overhead even with batching.
+- **Vector DB**: FAISS works for a single-user prototype, but a production-ready or multi-user deployment would need a proper vector database service such as Qdrant instead.
